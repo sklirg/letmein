@@ -31,6 +31,9 @@ func (context *HTTP) Init() {
 		cookieName = "letmein"
 	}
 
+	// Set custom domain for the cookie if set
+	context.CookieDomain = os.Getenv("LMI_COOKIE_DOMAIN")
+
 	// Get URL to login view
 	loginURL := os.Getenv("LMI_LOGIN_URL")
 	if loginURL == "" {
@@ -69,7 +72,18 @@ func (context *HTTP) Init() {
 		log.WithError(err).Fatal("Failed to init DB")
 	}
 
-	context.store = sessions.NewCookieStore([]byte(key))
+	// Initialize session store
+	store := sessions.NewCookieStore([]byte(key))
+
+	// Set custom domain for cookies if set
+	if context.CookieDomain != "" {
+		storeOptions := store.Options
+		storeOptions.Domain = context.CookieDomain
+		store.Options = storeOptions
+	}
+
+	context.store = store
+	context.store.Options.Domain = context.CookieDomain
 	context.CookieName = cookieName
 	context.loginHTMLTemplate = htmlTemplate
 	context.adminHTMLTemplate = adminHTMLTemplate

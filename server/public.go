@@ -17,6 +17,7 @@ import (
 type HTTP struct {
 	store             *sessions.CookieStore
 	CookieName        string
+	CookieDomain      string
 	LoginURL          string
 	loginHTMLTemplate *template.Template
 	adminHTMLTemplate *template.Template
