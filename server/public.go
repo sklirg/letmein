@@ -39,10 +39,11 @@ func (context *HTTP) HandleAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Retrieve URL of auth request
-	resource := fmt.Sprintf("%s://%s%s",
+	resource := fmt.Sprintf("%s://%s",
 		r.Header["X-Forwarded-Proto"][0],
-		r.Header["X-Forwarded-Host"][0],
-		r.Header["X-Forwarded-Uri"][0])
+		r.Header["X-Forwarded-Host"][0])
+
+	resourceURI := fmt.Sprintf("%s%s", resource, r.Header["X-Forwarded-Uri"][0])
 
 	if authenticated, ok := session.Values["authenticated"].(bool); !ok || !authenticated {
 		loginURL := fmt.Sprintf("%s?redirect_url=%s", context.LoginURL, url.QueryEscape(resourceURI))
