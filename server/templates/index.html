@@ -1,20 +1,83 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>let me in</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css?family=Noto+Serif:300,400|Open+Sans&display=swap');
+
+            html, body, div {
+                margin: 0;
+            }
+
+            body {
+                font-family: 'Open Sans', sans-serif;
+                font-weight: 300;
+                background-color: #1a2293;
+                color: #ffffff;
+                display: grid;
+                grid-template-columns: 1fr minmax(20rem, 1fr) 1fr;
+                grid-template-areas:
+                    ". header ."
+                    ". loginForm ."
+                    ;
+            }
+
+            .header {
+                grid-area: header;
+                font-family: 'Noto Serif', serif;
+            }
+
+            .login--form {
+                grid-area: loginForm;
+                border: 2px #3a32a3 solid;
+                border-radius: 3px;
+                padding: 1rem;
+            }
+
+            .login--form > form {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(3, 1fr);
+            }
+
+            .login--form > form > div {
+                display: flex;
+                justify-content: space-between;
+                margin: 0.5rem 0;
+            }
+
+            .login--form > form > label {
+                grid-column: 1;
+            }
+
+            .login--form > form > input {
+                grid-column: 2 / span 2;
+                height: 2rem;
+                border: 1px #efefef solid;
+                border-radius: 2px;
+                font-size: 24px;
+            }
+
+            .login--form > form > button {
+                grid-column: 2 / span 2;
+                height: 3rem;
+                background-color: #33bb33;
+                border: 1px #11cc11 solid;
+                border-radius: 2px;
+                font-size: 28px;
+                color: #ffffff;
+            }
+        </style>
     </head>
     <body>
-        <h1>Let me in</h1>
-        <div>
+        <h1 class="header">Let me in</h1>
+        <div class="login--form">
             <form action="" method="POST">
-                <div>
-                    <label for="login-username">Username</label>
-                    <input id="login-username" placeholder="Username" name="username" />
-                </div>
-                <div>
-                    <label for="login-password">Password</label>
-                    <input id="login-password" type="password" name="password" />
-                </div>
+                <label for="login-username">Username</label>
+                <input id="login-username" placeholder="Username" name="username" />
+                <label for="login-password">Password</label>
+                <input id="login-password" type="password" name="password" />
                 <button type="submit">Log in</button>
             </form>
         </div>
