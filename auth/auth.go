@@ -19,11 +19,13 @@ type Context struct {
 
 // User contains the fields of the User type
 type User struct {
+	ID       int64
 	Username string
 }
 
 // Site contains the fields of the Site type
 type Site struct {
+	ID  int64
 	URL string
 }
 
@@ -64,7 +66,7 @@ func CreateContext() (*Context, error) {
 
 // FetchUsers fetches users from the database and returns them
 func (auth *Context) FetchUsers() ([]*User, error) {
-	rows, err := auth.db.Query("SELECT username from users")
+	rows, err := auth.db.Query("SELECT id, username from users")
 	defer rows.Close()
 
 	if err != nil {
@@ -74,12 +76,13 @@ func (auth *Context) FetchUsers() ([]*User, error) {
 
 	users := make([]*User, 0)
 	for rows.Next() {
+		var userID int64
 		var username string
-		if err := rows.Scan(&username); err != nil {
+		if err := rows.Scan(&userID, &username); err != nil {
 			log.WithError(err).Error("Users row iteration failed")
 			break
 		}
-		users = append(users, &User{Username: username})
+		users = append(users, &User{ID: userID, Username: username})
 	}
 
 	return users, nil
@@ -87,7 +90,7 @@ func (auth *Context) FetchUsers() ([]*User, error) {
 
 // FetchSites fetches sites from the database and returns them
 func (auth *Context) FetchSites() ([]*Site, error) {
-	rows, err := auth.db.Query("SELECT url from sites")
+	rows, err := auth.db.Query("SELECT id, url from sites")
 	defer rows.Close()
 
 	if err != nil {
@@ -97,12 +100,13 @@ func (auth *Context) FetchSites() ([]*Site, error) {
 
 	sites := make([]*Site, 0)
 	for rows.Next() {
+		var siteID int64
 		var URL string
-		if err := rows.Scan(&URL); err != nil {
+		if err := rows.Scan(&siteID, &URL); err != nil {
 			log.WithError(err).Error("Sites row iteration failed")
 			break
 		}
-		sites = append(sites, &Site{URL: URL})
+		sites = append(sites, &Site{ID: siteID, URL: URL})
 	}
 
 	return sites, nil

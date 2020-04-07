@@ -91,11 +91,21 @@
                 <form action="/admin/claim" method="POST">
                     <div>
                         <label for="admin-username">Username</label>
-                        <input id="admin-username" placeholder="Username" name="username" />
+                        <select id="admin-username" name="username">
+                            <option>Select a user ...</option>
+                            {{ range $i, $user := .Users }}
+                            <option value="{{ $user.ID }}">{{ $user.Username }}</option>
+                            {{ end }}
+                        </select>
                     </div>
                     <div>
                         <label for="admin-url">URL</label>
-                        <input id="admin-url" placeholder="https://example.org" name="url" />
+                        <select id="admin-url" name="url">
+                            <option>Select a site ...</option>
+                            {{ range $i, $site := .Sites }}
+                                <option value="{{ $site.ID }}">{{ $site.URL }}</option>
+                            {{ end }}
+                        </select>
                     </div>
                     <button type="submit">Add</button>
                 </form>
