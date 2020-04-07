@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"os"
@@ -30,8 +31,13 @@ func (context *HTTP) Init() {
 		cookieName = "letmein"
 	}
 
+	templateDir := os.Getenv("LMI_TEMPLATE_DIR")
+	if templateDir == "" {
+		templateDir = "./server/templates"
+	}
+
 	// Read HTML template from file
-	templateFilePath := "./server/templates/index.html"
+	templateFilePath := fmt.Sprintf("%s/index.html", templateDir)
 	templateContents, err := ioutil.ReadFile(templateFilePath)
 	if err != nil {
 		log.WithError(err).Fatal("Failed to read template file")
@@ -40,7 +46,7 @@ func (context *HTTP) Init() {
 	htmlTemplate.Parse(string(templateContents))
 
 	// admin template
-	adminTemplateFilePath := "./server/templates/admin.html"
+	adminTemplateFilePath := fmt.Sprintf("%s/admin.html", templateDir)
 	adminTemplateContents, err := ioutil.ReadFile(adminTemplateFilePath)
 	if err != nil {
 		log.WithError(err).Fatal("Failed to read template file")
