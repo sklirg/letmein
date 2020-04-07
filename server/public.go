@@ -17,6 +17,7 @@ import (
 type HTTP struct {
 	store             *sessions.CookieStore
 	CookieName        string
+	LoginURL          string
 	loginHTMLTemplate *template.Template
 	adminHTMLTemplate *template.Template
 	authDB            *auth.Context
@@ -43,7 +44,7 @@ func (context *HTTP) HandleAuth(w http.ResponseWriter, r *http.Request) {
 		r.Header["X-Forwarded-Uri"][0])
 
 	if authenticated, ok := session.Values["authenticated"].(bool); !ok || !authenticated {
-		loginURL := fmt.Sprintf("http://localhost:8001/login?redirect_url=%s", url.QueryEscape(resource))
+		loginURL := fmt.Sprintf("%s?redirect_url=%s", context.LoginURL, url.QueryEscape(resourceURI))
 
 		log.WithField("resource", resource).Debug("Client is not authenticated; redirecting to login")
 

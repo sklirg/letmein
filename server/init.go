@@ -31,6 +31,14 @@ func (context *HTTP) Init() {
 		cookieName = "letmein"
 	}
 
+	// Get URL to login view
+	loginURL := os.Getenv("LMI_LOGIN_URL")
+	if loginURL == "" {
+		loginURL = "http://localhost:8001"
+		log.WithField("URL", context.LoginURL).Warn("Missing LMI_LOGIN_URL, setting it to default")
+	}
+	context.LoginURL = loginURL
+
 	templateDir := os.Getenv("LMI_TEMPLATE_DIR")
 	if templateDir == "" {
 		templateDir = "./server/templates"
