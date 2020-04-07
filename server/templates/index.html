@@ -13,26 +13,31 @@
             body {
                 font-family: 'Open Sans', sans-serif;
                 font-weight: 300;
-                background-color: #1a2293;
+                background-color: #000000e0;
                 color: #ffffff;
                 display: grid;
-                grid-template-columns: 1fr minmax(20rem, 1fr) 1fr;
+                grid-template-columns: 1fr minmax(20rem, 30rem) 1fr;
+                grid-template-rows: 1fr 0.5fr 0.5fr 1fr;
                 grid-template-areas:
+                    " . . . "
                     ". header ."
                     ". loginForm ."
+                    " . . . "
                     ;
             }
 
             .header {
                 grid-area: header;
                 font-family: 'Noto Serif', serif;
+                margin: 0 auto;
             }
 
             .login--form {
                 grid-area: loginForm;
-                border: 2px #3a32a3 solid;
+                border: 2px rgba(0, 0, 0, 0.2) solid;
                 border-radius: 3px;
                 padding: 1rem;
+                background: rgba(0, 0, 0, 0.2);
             }
 
             .login--form > form {
@@ -41,32 +46,48 @@
                 grid-template-rows: repeat(3, 1fr);
             }
 
-            .login--form > form > div {
-                display: flex;
-                justify-content: space-between;
-                margin: 0.5rem 0;
-            }
-
-            .login--form > form > label {
-                grid-column: 1;
-            }
-
             .login--form > form > input {
-                grid-column: 2 / span 2;
+                grid-column: 1 / span 3;
                 height: 2rem;
-                border: 1px #efefef solid;
+                border: 1px #acacac solid;
                 border-radius: 2px;
-                font-size: 24px;
+                font-size: 16px;
+                padding: 4px;
+                margin: 8px 0;
+                background: rgba(0, 0, 0, 0.3);
+                color: #fefefe;
+
+                transition: border 150ms;
+            }
+
+            .login--form > form > input:invalid {
+                /* Override Firefox default invalid style */
+                box-shadow: none;
+            }
+
+            .login--form > form > input:invalid:not(:focus) {
+                border: 1px rgba(0, 0, 0, 1) solid;
+            }
+
+            .login--form > form > input:focus {
+                border: 1px rgba(255, 255, 255, 1) solid;
             }
 
             .login--form > form > button {
-                grid-column: 2 / span 2;
-                height: 3rem;
-                background-color: #33bb33;
-                border: 1px #11cc11 solid;
+                margin: 8px 0;
+                grid-column: 3;
+                height: 2.5rem;
+                background-color: rgba(0, 0, 0, 0.3);
+                border: 1px rgba(0, 0, 0, 0.3) solid;
                 border-radius: 2px;
-                font-size: 28px;
-                color: #ffffff;
+                font-size: 18px;
+                color: #eeeeee;
+
+                transition: border 300ms;
+            }
+
+            .login--form > form > button:hover, .login--form > form > button:focus {
+                border: 1px rgba(255, 255, 255, 0.8) solid;
             }
         </style>
     </head>
@@ -74,12 +95,12 @@
         <h1 class="header">Let me in</h1>
         <div class="login--form">
             <form action="" method="POST">
-                <label for="login-username">Username</label>
-                <input id="login-username" placeholder="Username" name="username" />
-                <label for="login-password">Password</label>
-                <input id="login-password" type="password" name="password" />
-                <button type="submit">Log in</button>
+                <input id="login-username" placeholder="Username" name="username" required="true" />
+                <input id="login-password" type="password" placeholder="Password" name="password" required="true" />
+                <button type="submit">Let me in</button>
             </form>
         </div>
     </body>
+    <!-- Nifty hack to avoid firing CSS transitions on page load. -->
+    <script> </script>
 </html>
