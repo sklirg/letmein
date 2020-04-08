@@ -26,6 +26,60 @@
                     ;
             }
 
+            input {
+                height: 2rem;
+                border: 1px #acacac solid;
+                border-radius: 2px;
+                font-size: 16px;
+                padding: 4px;
+                margin: 8px 0;
+                background: rgba(0, 0, 0, 0.3);
+                color: #fefefe;
+
+                transition: border 150ms;
+            }
+
+            input:invalid {
+                /* Override Firefox default invalid style */
+                box-shadow: none;
+            }
+
+            input:invalid:not(:focus) {
+                border: 1px rgba(0, 0, 0, 1) solid;
+            }
+
+            input:focus {
+                border: 1px rgba(255, 255, 255, 1) solid;
+            }
+
+            button {
+                margin: 8px 0;
+                height: 2.5rem;
+                background-color: rgba(0, 0, 0, 0.3);
+                border: 1px rgba(0, 0, 0, 0.3) solid;
+                border-radius: 2px;
+                font-size: 18px;
+                color: #eeeeee;
+
+                transition: border 300ms;
+            }
+
+            button:hover, button:focus {
+                border: 1px rgba(255, 255, 255, 0.8) solid;
+            }
+
+            .header {
+                grid-area: header;
+                font-family: 'Noto Serif', serif;
+                margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header > h1, .header > h2 {
+                margin-left: auto;
+                margin-right: auto;
+            }
 
             .login--form {
                 grid-area: loginForm;
@@ -43,59 +97,10 @@
 
             .login--form > form > input {
                 grid-column: 1 / span 3;
-                height: 2rem;
-                border: 1px #acacac solid;
-                border-radius: 2px;
-                font-size: 16px;
-                padding: 4px;
-                margin: 8px 0;
-                background: rgba(0, 0, 0, 0.3);
-                color: #fefefe;
-
-                transition: border 150ms;
-            }
-
-            .login--form > form > input:invalid {
-                /* Override Firefox default invalid style */
-                box-shadow: none;
-            }
-
-            .login--form > form > input:invalid:not(:focus) {
-                border: 1px rgba(0, 0, 0, 1) solid;
-            }
-
-            .login--form > form > input:focus {
-                border: 1px rgba(255, 255, 255, 1) solid;
             }
 
             .login--form > form > button {
-                margin: 8px 0;
                 grid-column: 3;
-                height: 2.5rem;
-                background-color: rgba(0, 0, 0, 0.3);
-                border: 1px rgba(0, 0, 0, 0.3) solid;
-                border-radius: 2px;
-                font-size: 18px;
-                color: #eeeeee;
-
-                transition: border 300ms;
-            }
-
-            .login--form > form > button:hover, .login--form > form > button:focus {
-                border: 1px rgba(255, 255, 255, 0.8) solid;
-            }
-
-            .header {
-                grid-area: header;
-                font-family: 'Noto Serif', serif;
-                margin: 0 auto;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .header > h1, .header > h2 {
-                margin-left: auto;
-                margin-right: auto;
             }
         </style>
     </head>
