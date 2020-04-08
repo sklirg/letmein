@@ -31,6 +31,16 @@ func main() {
 	h := server.HTTP{}
 	h.Init()
 
+	// Redirect / to /login cause nothing happens at /login
+	// Tbh nothing happens at /login either but it looks better
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Lol this redirects favicon too gg
+		// w.Header().Add("location", "/login")
+		// w.WriteHeader(302)
+		w.Write([]byte("<html><script>window.location=\"/login\"</script></html>"))
+	})
+
 	http.HandleFunc("/auth", h.HandleAuth)
 	http.HandleFunc("/login", h.HandleLogin)
 	http.HandleFunc("/logout", h.HandleLogout)
