@@ -13,26 +13,78 @@
             body {
                 font-family: 'Open Sans', sans-serif;
                 font-weight: 300;
-                background-color: #1a2293;
+                background-color: #000000e0;
                 color: #ffffff;
                 display: grid;
-                grid-template-columns: 1fr minmax(20rem, 1fr) 1fr;
+                grid-template-columns: minmax(20rem, 30rem);
                 grid-template-areas:
                     ". header ."
                     ". loginForm ."
-                    ;
+                ;
+            }
+
+            input {
+                height: 2rem;
+                border: 1px #acacac solid;
+                border-radius: 2px;
+                font-size: 16px;
+                padding: 4px;
+                margin: 8px 0;
+                background: rgba(0, 0, 0, 0.3);
+                color: #fefefe;
+
+                transition: border 150ms;
+            }
+
+            input:invalid {
+                /* Override Firefox default invalid style */
+                box-shadow: none;
+            }
+
+            input:invalid:not(:focus) {
+                border: 1px rgba(0, 0, 0, 1) solid;
+            }
+
+            input:focus {
+                border: 1px rgba(255, 255, 255, 1) solid;
+            }
+
+            button {
+                margin: 8px 0;
+                height: 2.5rem;
+                background-color: rgba(0, 0, 0, 0.3);
+                border: 1px rgba(0, 0, 0, 0.3) solid;
+                border-radius: 2px;
+                font-size: 18px;
+                color: #eeeeee;
+
+                transition: border 300ms;
+            }
+
+            button:hover,
+            button:focus {
+                border: 1px rgba(255, 255, 255, 0.8) solid;
             }
 
             .header {
                 grid-area: header;
                 font-family: 'Noto Serif', serif;
+                margin: 0 auto;
+                display: flex;
+                flex-direction: column;
             }
 
             .admin-site {
                 grid-area: loginForm;
-                border: 2px #3a32a3 solid;
+                border: 2px rgba(0, 0, 0, 0.2) solid;
                 border-radius: 3px;
                 padding: 1rem;
+                background: rgba(0, 0, 0, 0.2);
+            }
+
+            .admin-site form {
+                display: flex;
+                justify-content: space-between;
             }
         </style>
     </head>
@@ -63,14 +115,8 @@
             <div>
                 <h2>Add new user</h2>
                 <form action="/admin/user" method="POST">
-                    <div>
-                        <label for="admin-username">Username</label>
-                        <input id="admin-username" placeholder="Username" name="username" />
-                    </div>
-                    <div>
-                        <label for="admin-password">Password</label>
-                        <input id="admin-password" type="password" name="password" />
-                    </div>
+                    <input id="admin-username" placeholder="Username" name="username" />
+                    <input id="admin-password" type="password" placeholder="Password" name="password" />
                     <button type="submit">Add</button>
                 </form>
             </div>
@@ -78,10 +124,7 @@
             <div>
                 <h2>Add new site</h2>
                 <form action="/admin/site" method="POST">
-                    <div>
-                        <label for="admin-url">URL</label>
-                        <input id="admin-url" placeholder="https://example.org" name="url" />
-                    </div>
+                    <input id="admin-url" placeholder="https://example.org" placeholder="URL" name="url" />
                     <button type="submit">Add</button>
                 </form>
             </div>
