@@ -87,20 +87,33 @@
                 border-radius: 3px;
                 padding: 1rem;
                 background: rgba(0, 0, 0, 0.2);
-            }
-
-            .login--form > form {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
                 grid-template-rows: repeat(3, 1fr);
             }
 
-            .login--form > form > input {
+            .login--form > form {
+                display: contents;
+            }
+
+            .login--form input {
                 grid-column: 1 / span 3;
             }
 
-            .login--form > form > button {
+            .login--form button#login {
+                grid-row: 3;
                 grid-column: 3;
+            }
+
+            .login--form button#logout {
+                grid-row: 3;
+                grid-column: 1;
+                background-color: rgba(235, 0, 0, 0.3);
+                border: 1px rgba(235, 0, 0, 0.3) solid;
+            }
+
+            .login--form button#logout:hover {
+                border: 1px rgba(255, 0, 0, 0.8) solid;
             }
         </style>
     </head>
@@ -110,10 +123,13 @@
             <h2>{{ .RedirectURL }}</h2>
         </header>
         <div class="login--form">
-            <form action="" method="POST">
+            <form action="/login" method="POST">
                 <input id="login-username" placeholder="Username" name="username" required="true" />
                 <input id="login-password" type="password" placeholder="Password" name="password" required="true" />
-                <button type="submit">Let me in</button>
+                <button type="submit" id="login">Let me in</button>
+            </form>
+            <form action="/logout" method="POST">
+                <button id="logout">Let me out</button>
             </form>
         </div>
     </body>

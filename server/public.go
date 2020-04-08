@@ -146,3 +146,22 @@ func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 func (context *HTTP) authenticate(username, password string) bool {
 	return context.authDB.AuthenticateUser(username, password)
 }
+
+// HandleLogout deletes the session and effectively logs the user out
+func (context *HTTP) HandleLogout(w http.ResponseWriter, r *http.Request) {
+	session, err := context.store.Get(r, "letmein-session")
+
+	if err != nil {
+		log.Debug("Tried to delete non-existing session")
+		w.WriteHeader(400)
+		context.loginHTMLTemplate.Execute(w, nil)
+		return
+	}
+
+	session.Options.MaxAge = -1
+	session.Save(r, w)
+
+	w.WriteHeader(200)
+	context.loginHTMLTemplate.Execute(w, nil)
+	return
+}
