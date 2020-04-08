@@ -11,7 +11,6 @@ import (
 // HandleAdmin renders the admin page
 func (context *HTTP) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 	session, _ := context.store.Get(r, "letmein-session")
-	// @todo csrf
 
 	// Let's first check if user is authenticated and authorized
 	if authed, ok := session.Values["admin"].(bool); ok && authed {
@@ -57,6 +56,12 @@ func (context *HTTP) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		r.ParseForm()
 
+		if session.Values["csrf-token"] != r.PostFormValue("csrftoken") {
+			w.Header().Add("location", "/admin")
+			w.WriteHeader(302)
+			return
+		}
+
 		if context.authenticateAdmin(r.PostFormValue("username"), r.PostFormValue("password")) {
 			log.WithField("username", r.PostFormValue("username")).Info("Adminstrator logged in")
 			session.Values["admin"] = true
@@ -70,9 +75,22 @@ func (context *HTTP) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 		log.WithField("username", r.PostFormValue("username")).Warning("Failed adminstrator login attempt")
 	}
 
+	type AdminLoginContext struct {
+		CSRFToken   string
+		RedirectURL string
+	}
+
+	loginContext := AdminLoginContext{
+		CSRFToken:   auth.CreateCSRFToken(),
+		RedirectURL: "",
+	}
+
+	session.Values["csrf-token"] = loginContext.CSRFToken
+	session.Save(r, w)
+
 	// Let's reuse the login template for login because we basically do the same thing.
 	w.WriteHeader(200)
-	context.loginHTMLTemplate.Execute(w, nil)
+	context.loginHTMLTemplate.Execute(w, loginContext)
 }
 
 func (context *HTTP) authenticateAdmin(username, password string) bool {

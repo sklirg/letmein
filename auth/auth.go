@@ -277,3 +277,10 @@ func (auth *Context) AddClaim(username, url string) error {
 
 	return nil
 }
+
+// CreateCSRFToken creates a CSRF token
+func CreateCSRFToken() string {
+	saltSrc, _ := uuid.NewRandom()
+
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(saltSrc.String())))
+}

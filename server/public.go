@@ -102,13 +102,18 @@ func (context *HTTP) HandleAuth(w http.ResponseWriter, r *http.Request) {
 // if they were redirected here by the /auth route
 func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	session, _ := context.store.Get(r, "letmein-session")
-	// @todo csrf
 
 	if auth, ok := session.Values["authenticated"].(bool); ok && auth {
 		log.Debug("Authenticated user visited login")
 	} else {
 		if r.Method == "POST" {
 			r.ParseForm()
+
+			if session.Values["csrf-token"] != r.PostFormValue("csrftoken") {
+				w.Header().Add("location", "")
+				w.WriteHeader(302)
+				return
+			}
 
 			if context.authenticate(r.PostFormValue("username"), r.PostFormValue("password")) {
 				session.Values["authenticated"] = true
@@ -133,11 +138,16 @@ func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	type LoginContext struct {
 		RedirectURL string
+		CSRFToken   string
 	}
 
 	loginContext := LoginContext{
 		RedirectURL: r.FormValue("redirect_url"),
+		CSRFToken:   auth.CreateCSRFToken(),
 	}
+
+	session.Values["csrf-token"] = loginContext.CSRFToken
+	session.Save(r, w)
 
 	w.WriteHeader(200)
 	context.loginHTMLTemplate.Execute(w, loginContext)
@@ -149,19 +159,33 @@ func (context *HTTP) authenticate(username, password string) bool {
 
 // HandleLogout deletes the session and effectively logs the user out
 func (context *HTTP) HandleLogout(w http.ResponseWriter, r *http.Request) {
+
+	// Delete ? 🤔
+	if r.Method != "POST" {
+		w.WriteHeader(405)
+		return
+	}
+
 	session, err := context.store.Get(r, "letmein-session")
 
 	if err != nil {
 		log.Debug("Tried to delete non-existing session")
-		w.WriteHeader(400)
+		w.WriteHeader(200)
 		context.loginHTMLTemplate.Execute(w, nil)
+		return
+	}
+
+	r.ParseForm()
+
+	if session.Values["csrf-token"] != r.FormValue("csrftoken") {
+		w.WriteHeader(400)
 		return
 	}
 
 	session.Options.MaxAge = -1
 	session.Save(r, w)
 
-	w.WriteHeader(200)
-	context.loginHTMLTemplate.Execute(w, nil)
+	w.Header().Add("location", "/login")
+	w.WriteHeader(302)
 	return
 }

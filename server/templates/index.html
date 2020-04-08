@@ -124,11 +124,13 @@
         </header>
         <div class="login--form">
             <form action="" method="POST">
+                <input id="csrf-token" type="text" name="csrftoken" value="{{ .CSRFToken }}" hidden />
                 <input id="login-username" placeholder="Username" name="username" required="true" />
                 <input id="login-password" type="password" placeholder="Password" name="password" required="true" />
                 <button type="submit" id="login">Let me in</button>
             </form>
             <form action="/logout" method="POST">
+                <input id="csrf-token" type="text" name="csrftoken" value="{{ .CSRFToken }}" hidden />
                 <button id="logout">Let me out</button>
             </form>
         </div>
