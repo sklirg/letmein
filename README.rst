@@ -106,3 +106,9 @@ And a traefik configuration similar to the following
         # LetMeIn, the auth proxy - login view
         [[http.services.letmein.loadBalancer.servers]]
         url = "http://[::1]:8003/login"
+
+
+Screenshots
+===========
+
+.. image:: https://i.imgur.com/QURv4ir.png
