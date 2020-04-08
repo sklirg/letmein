@@ -129,8 +129,18 @@ func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	r.ParseForm()
+
+	type LoginContext struct {
+		RedirectURL string
+	}
+
+	loginContext := LoginContext{
+		RedirectURL: r.FormValue("redirect_url"),
+	}
+
 	w.WriteHeader(200)
-	context.loginHTMLTemplate.Execute(w, nil)
+	context.loginHTMLTemplate.Execute(w, loginContext)
 }
 
 func (context *HTTP) authenticate(username, password string) bool {

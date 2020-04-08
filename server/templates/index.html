@@ -26,11 +26,6 @@
                     ;
             }
 
-            .header {
-                grid-area: header;
-                font-family: 'Noto Serif', serif;
-                margin: 0 auto;
-            }
 
             .login--form {
                 grid-area: loginForm;
@@ -89,10 +84,26 @@
             .login--form > form > button:hover, .login--form > form > button:focus {
                 border: 1px rgba(255, 255, 255, 0.8) solid;
             }
+
+            .header {
+                grid-area: header;
+                font-family: 'Noto Serif', serif;
+                margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header > h1, .header > h2 {
+                margin-left: auto;
+                margin-right: auto;
+            }
         </style>
     </head>
     <body>
-        <h1 class="header">Let me in</h1>
+        <header class="header">
+            <h1>Let me in</h1>
+            <h2>{{ .RedirectURL }}</h2>
+        </header>
         <div class="login--form">
             <form action="" method="POST">
                 <input id="login-username" placeholder="Username" name="username" required="true" />
