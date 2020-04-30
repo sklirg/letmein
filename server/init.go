@@ -99,4 +99,8 @@ func (context *HTTP) Init() {
 	context.adminHTMLTemplate = adminHTMLTemplate
 	context.profileHTMLTemplate = profileHTMLTemplate
 	context.authDB = adb
+
+	if err := context.fetchGrants(""); err != nil {
+		log.WithError(err).Fatal("failed to fetch grants")
+	}
 }

@@ -58,28 +58,6 @@ func (context *HTTP) HandleAuth(w http.ResponseWriter, r *http.Request) {
 
 	log.Trace("User authenticated, time to authorize")
 
-	// @ToDo: Do this in an init-style method, e.g. using sync.DoOnce
-	if context.grants == nil {
-		log.Debug("Initializing context.grants")
-		context.grants = make(map[string][]*auth.Claim)
-		claims, err := context.authDB.FetchClaims()
-
-		if err != nil {
-			log.WithError(err).Error("Failed to initialize context.grants")
-			w.WriteHeader(500)
-			return
-		}
-
-		for _, grant := range claims {
-			if context.grants[grant.URL] == nil {
-				context.grants[grant.URL] = make([]*auth.Claim, 0)
-			}
-			context.grants[grant.URL] = append(context.grants[grant.URL], grant)
-		}
-
-		log.Debugf("Initialized context.grants with %d claims for %d URLs", len(claims), len(context.grants))
-	}
-
 	if context.grants[resource] != nil {
 		for _, grant := range context.grants[resource] {
 			if grant.Username == session.Values["username"] {
@@ -88,14 +66,9 @@ func (context *HTTP) HandleAuth(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-	} else {
-		log.WithField("URL", resource).Warning("Unrecognized resource")
-		w.WriteHeader(404)
-		return
 	}
 
-	log.Error("Not sure how we got here but hey let's go")
-	w.WriteHeader(500)
+	w.WriteHeader(404)
 	return
 }
 
@@ -229,4 +202,31 @@ func (context *HTTP) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("location", "/login")
 	w.WriteHeader(302)
 	return
+}
+
+func (context *HTTP) fetchGrants(forceResource string) error {
+	log.Debug("Fetching context.grants")
+	grants := make(map[string][]*auth.Claim)
+	claims, err := context.authDB.FetchClaims()
+
+	if err != nil {
+		log.WithError(err).Error("Failed to initialize context.grants")
+		return err
+	}
+
+	for _, grant := range claims {
+		if grants[grant.URL] == nil {
+			grants[grant.URL] = make([]*auth.Claim, 0)
+		}
+		grants[grant.URL] = append(grants[grant.URL], grant)
+	}
+
+	if forceResource != "" && grants[forceResource] == nil {
+		log.WithField("resource", forceResource).Warn("Forcing initialization of resource")
+		grants[forceResource] = make([]*auth.Claim, 0)
+	}
+
+	context.grants = grants
+	log.Debugf("Initialized context.grants with %d claims for %d URLs", len(claims), len(context.grants))
+	return nil
 }
