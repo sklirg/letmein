@@ -43,7 +43,11 @@ func main() {
 	})
 
 	// CSS
-	css, err := ioutil.ReadFile("./server/static/css/styles.css")
+	staticDir := os.Getenv("LMI_STATIC")
+	if staticDir == "" {
+		staticDir = "./server/static"
+	}
+	css, err := ioutil.ReadFile(fmt.Sprintf("%s/css/styles.css", staticDir))
 	cssBytes := []byte(css)
 
 	if err != nil {
