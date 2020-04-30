@@ -58,6 +58,11 @@ func (context *HTTP) HandleAuth(w http.ResponseWriter, r *http.Request) {
 
 	log.Trace("User authenticated, time to authorize")
 
+	if context.grants[resource] == nil {
+		log.WithField("URL", resource).Warning("Unrecognized resource")
+		context.fetchGrants(resource)
+	}
+
 	if context.grants[resource] != nil {
 		for _, grant := range context.grants[resource] {
 			if grant.Username == session.Values["username"] {
