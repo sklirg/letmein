@@ -1,0 +1,7 @@
+a {
+  color: #fefefe;
+}
+
+a::visited {
+  color: #fefefe;
+}

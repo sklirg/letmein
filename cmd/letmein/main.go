@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -39,6 +40,19 @@ func main() {
 		// w.Header().Add("location", "/login")
 		// w.WriteHeader(302)
 		w.Write([]byte("<html><script>window.location=\"/login\"</script></html>"))
+	})
+
+	// CSS
+	css, err := ioutil.ReadFile("./server/static/css/styles.css")
+	cssBytes := []byte(css)
+
+	if err != nil {
+		log.WithError(err).Fatal("Failed to read CSS file!")
+	}
+	http.HandleFunc("/static/css/styles.css", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "text/css")
+		w.WriteHeader(200)
+		w.Write(cssBytes)
 	})
 
 	http.HandleFunc("/auth", h.HandleAuth)
