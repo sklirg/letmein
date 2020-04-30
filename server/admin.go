@@ -57,6 +57,7 @@ func (context *HTTP) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		if session.Values["csrf-token"] != r.PostFormValue("csrftoken") {
+			log.WithField("session-csrf", session.Values["csrf-token"]).WithField("request-csrf", r.PostFormValue("csrftoken")).Error("Failed csrf on admin login")
 			w.Header().Add("location", "/admin")
 			w.WriteHeader(302)
 			return

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>let me in</title>
+        <link rel="stylesheet" href="/static/css/styles.css" />
+        <style>
+            @import url('https://fonts.googleapis.com/css?family=Noto+Serif:300,400|Open+Sans&display=swap');
+
+            html, body, div {
+                margin: 0;
+            }
+
+            body {
+                font-family: 'Open Sans', sans-serif;
+                font-weight: 300;
+                background-color: #000000e0;
+                color: #ffffff;
+                display: grid;
+                grid-template-columns: 1fr minmax(20rem, 50rem) 1fr;
+                grid-template-rows: 1fr 0.5fr 0.5fr 1fr;
+                grid-template-areas:
+                    " . . . "
+                    ". header ."
+                    ". profile ."
+                    " . . . "
+                    ;
+            }
+
+            input {
+                height: 2rem;
+                border: 1px #acacac solid;
+                border-radius: 2px;
+                font-size: 16px;
+                padding: 4px;
+                margin: 8px 0;
+                background: rgba(0, 0, 0, 0.3);
+                color: #fefefe;
+
+                transition: border 150ms;
+            }
+
+            input:invalid {
+                /* Override Firefox default invalid style */
+                box-shadow: none;
+            }
+
+            input:invalid:not(:focus) {
+                border: 1px rgba(0, 0, 0, 1) solid;
+            }
+
+            input:focus {
+                border: 1px rgba(255, 255, 255, 1) solid;
+            }
+
+            button {
+                margin: 8px 0;
+                height: 2.5rem;
+                background-color: rgba(0, 0, 0, 0.3);
+                border: 1px rgba(0, 0, 0, 0.3) solid;
+                border-radius: 2px;
+                font-size: 18px;
+                color: #eeeeee;
+
+                transition: border 300ms;
+            }
+
+            button:hover, button:focus {
+                border: 1px rgba(255, 255, 255, 0.8) solid;
+            }
+
+            .header {
+                grid-area: header;
+                font-family: 'Noto Serif', serif;
+                margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header > h1, .header > h2 {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .profile {
+                grid-area: profile;
+                border: 2px rgba(0, 0, 0, 0.2) solid;
+                border-radius: 3px;
+                padding: 1rem;
+                background: rgba(0, 0, 0, 0.2);
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                /* grid-template-rows: repeat(3, 1fr); */
+            }
+
+            .profile--grants {
+                grid-column-start: span 2;
+            }
+
+            #logout-form {
+                grid-column: 2;
+                justify-self: end;
+            }
+
+            button#logout {
+                background-color: rgba(235, 0, 0, 0.3);
+                border: 1px rgba(235, 0, 0, 0.3) solid;
+            }
+        </style>
+    </head>
+    <body>
+        <header class="header">
+            <h1>Let me in</h1>
+            <h2>Profile for {{ .Username }}</h2>
+        </header>
+        <div class="profile">
+            <div class="profile--grants">
+                <h3>Grants</h3>
+                <ul>
+                    {{ range $i, $url := .URLs }}
+                    <li><a href="{{ $url }}">{{ $url }}</a></li>
+                    {{ end }}
+                </ul>
+            </div>
+            <form id="logout-form" action="/logout" method="POST">
+                <input id="csrf-token" type="text" name="csrftoken" value="{{ .CSRFToken }}" hidden />
+                <button id="logout">Let me out</button>
+            </form>
+        </div>
+    </body>
+    <!-- Nifty hack to avoid firing CSS transitions on page load. -->
+    <script> </script>
+</html>

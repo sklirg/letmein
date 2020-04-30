@@ -15,14 +15,15 @@ import (
 // HTTP contains the internal variables for the server
 // E.g. the database connection, session cookie name.
 type HTTP struct {
-	store             *sessions.CookieStore
-	CookieName        string
-	CookieDomain      string
-	LoginURL          string
-	loginHTMLTemplate *template.Template
-	adminHTMLTemplate *template.Template
-	authDB            *auth.Context
-	grants            map[string][]*auth.Claim
+	store               *sessions.CookieStore
+	CookieName          string
+	CookieDomain        string
+	LoginURL            string
+	loginHTMLTemplate   *template.Template
+	adminHTMLTemplate   *template.Template
+	profileHTMLTemplate *template.Template
+	authDB              *auth.Context
+	grants              map[string][]*auth.Claim
 }
 
 // HandleAuth handles the incoming proxy auth request
@@ -105,6 +106,9 @@ func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	if auth, ok := session.Values["authenticated"].(bool); ok && auth {
 		log.Debug("Authenticated user visited login")
+		w.Header().Add("location", "/profile")
+		w.WriteHeader(302)
+		return
 	} else {
 		if r.Method == "POST" {
 			r.ParseForm()
@@ -126,9 +130,9 @@ func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				// Login OK but no redirect URL, just give 200 I guess
+				w.Header().Add("location", "/profile")
 				log.Warn("Missing redirect_url for login request")
-				w.WriteHeader(200)
+				w.WriteHeader(302)
 				return
 			}
 		}
@@ -151,6 +155,42 @@ func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(200)
 	context.loginHTMLTemplate.Execute(w, loginContext)
+}
+
+// HandleProfile shows a user profile page, displaying current grants
+func (context *HTTP) HandleProfile(w http.ResponseWriter, r *http.Request) {
+	session, _ := context.store.Get(r, "letmein-session")
+
+	if authenticated, ok := session.Values["authenticated"].(bool); ok && authenticated {
+		type ProfileContext struct {
+			CSRFToken string
+			Username  string
+			URLs      []string
+		}
+
+		grantedURLs := make([]string, 0)
+		for _, claims := range context.grants {
+			for _, claim := range claims {
+				if claim.Username == session.Values["username"] {
+					grantedURLs = append(grantedURLs, claim.URL)
+				}
+			}
+		}
+
+		profileContext := ProfileContext{
+			CSRFToken: auth.CreateCSRFToken(),
+			Username:  session.Values["username"].(string),
+			URLs:      grantedURLs,
+		}
+
+		session.Values["csrf-token"] = profileContext.CSRFToken
+		session.Save(r, w)
+
+		w.WriteHeader(200)
+		context.profileHTMLTemplate.Execute(w, profileContext)
+		return
+	}
+	w.WriteHeader(401)
 }
 
 func (context *HTTP) authenticate(username, password string) bool {
@@ -178,6 +218,7 @@ func (context *HTTP) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	if session.Values["csrf-token"] != r.FormValue("csrftoken") {
+		log.WithField("session-csrf", session.Values["csrf-token"]).WithField("request-csrf", r.PostFormValue("csrftoken")).Error("Failed csrf on logout")
 		w.WriteHeader(400)
 		return
 	}

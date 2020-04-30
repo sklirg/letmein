@@ -66,6 +66,16 @@ func (context *HTTP) Init() {
 	adminHTMLTemplate := template.New("admin")
 	adminHTMLTemplate.Parse(string(adminTemplateContents))
 
+	// profile template
+	profileFilePath := fmt.Sprintf("%s/profile.html", templateDir)
+	profileContents, err := ioutil.ReadFile(profileFilePath)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to read template file")
+	}
+
+	profileHTMLTemplate := template.New("admin")
+	profileHTMLTemplate.Parse(string(profileContents))
+
 	// CreateAuthDB()
 	adb, err := auth.CreateContext()
 	if err != nil {
@@ -87,5 +97,6 @@ func (context *HTTP) Init() {
 	context.CookieName = cookieName
 	context.loginHTMLTemplate = htmlTemplate
 	context.adminHTMLTemplate = adminHTMLTemplate
+	context.profileHTMLTemplate = profileHTMLTemplate
 	context.authDB = adb
 }

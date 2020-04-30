@@ -44,6 +44,7 @@ func main() {
 	http.HandleFunc("/auth", h.HandleAuth)
 	http.HandleFunc("/login", h.HandleLogin)
 	http.HandleFunc("/logout", h.HandleLogout)
+	http.HandleFunc("/profile", h.HandleProfile)
 
 	// Admin sites
 	http.HandleFunc("/admin", h.HandleAdmin)
