@@ -1,18 +1,24 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/manage"
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
+	pgStore "github.com/vgarvardt/go-oauth2-pg/v4"
+	"github.com/jackc/pgx/v4"
+	"github.com/vgarvardt/go-pg-adapter/pgx4adapter"
 	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
 
@@ -30,12 +36,26 @@ type OAuth2 struct {
 }
 
 // Init initializes the context for the OAuth2 module
-func (oauth2 *OAuth2) Init(httpContext *HTTP) {
+func (oauth2 *OAuth2) Init(httpContext *HTTP) error {
 	log.Info("hi from oauth2")
+
+	// Init token store
+	pgxConn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.WithError(err).Error("Failed to connect to token store database")
+		return err
+	}
+	adapter := pgx4adapter.NewConn(pgxConn)
+
 	manager := manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 
-	manager.MustTokenStorage(store.NewMemoryTokenStore())
+	tokenStore, err := pgStore.NewTokenStore(adapter, pgStore.WithTokenStoreGCInterval(time.Minute * 15))
+	if err != nil {
+		log.WithError(err).Error("Failed to initialise token store")
+		return err
+	}
+	manager.MapTokenStorage(tokenStore)
 
 	oauth2.manager = manager
 	oauth2.UpdateClientStore()
@@ -59,6 +79,7 @@ func (oauth2 *OAuth2) Init(httpContext *HTTP) {
 	db, err := auth.CreateContext()
 	if err != nil {
 		log.WithError(err).Error("Failed to create db context in oauth2")
+		return err
 	}
 
 	// Need the same session store as in public endpoints..
@@ -67,6 +88,8 @@ func (oauth2 *OAuth2) Init(httpContext *HTTP) {
 
 	oauth2.srv = srv
 	oauth2.authDB = db
+
+	return nil
 }
 
 // HandleAuthorize is the handlerfunc for the oauth2 /authorize route

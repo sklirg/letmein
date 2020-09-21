@@ -8,8 +8,11 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.12.2
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/sessions v1.2.0
+	github.com/jackc/pgx/v4 v4.7.1
 	github.com/lib/pq v1.3.0
 	github.com/pquerna/cachecontrol v0.0.0-20200819021114-67c6ae64274f // indirect
 	github.com/sirupsen/logrus v1.5.0
+	github.com/vgarvardt/go-oauth2-pg/v4 v4.1.0
+	github.com/vgarvardt/go-pg-adapter v1.0.0
 	gopkg.in/square/go-jose.v2 v2.5.1
 )
