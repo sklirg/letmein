@@ -97,9 +97,10 @@ func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			if context.authenticate(r.PostFormValue("username"), r.PostFormValue("password")) {
+			if ok, user := context.authenticate(r.PostFormValue("username"), r.PostFormValue("password")); ok {
 				session.Values["authenticated"] = true
-				session.Values["username"] = r.PostFormValue("username")
+				session.Values["username"] = user.Username
+				session.Values["user_id"] = user.ID
 				session.Save(r, w)
 
 				if r.FormValue("redirect_url") != "" {
@@ -171,7 +172,7 @@ func (context *HTTP) HandleProfile(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(401)
 }
 
-func (context *HTTP) authenticate(username, password string) bool {
+func (context *HTTP) authenticate(username, password string) (bool, *auth.User) {
 	return context.authDB.AuthenticateUser(username, password)
 }
 

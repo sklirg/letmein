@@ -88,6 +88,58 @@ func (auth *Context) FetchUsers() ([]*User, error) {
 	return users, nil
 }
 
+func (auth *Context) FetchUser(id string) (*User, error) {
+	rows, err := auth.db.Query("SELECT id, username from users WHERE id = $1", id)
+	if err != nil {
+		log.WithError(err).Error("Failed to prepare sql query for user")
+		return nil, err
+	}
+	defer rows.Close()
+
+	if err != nil {
+		log.WithError(err).Error("SELECT user failed")
+		return nil, err
+	}
+
+	for rows.Next() {
+		var userID int64
+		var username string
+		if err := rows.Scan(&userID, &username); err != nil {
+			log.WithError(err).Error("Users row iteration failed")
+			break
+		}
+		return &User{ID: userID, Username: username}, nil
+	}
+
+	return nil, fmt.Errorf("No user found")
+}
+
+func (auth *Context) FetchUserByUsername(username string) (*User, error) {
+	rows, err := auth.db.Query("SELECT id, username from users WHERE username = $1", username)
+	if err != nil {
+		log.WithError(err).Error("Failed to prepare sql query for user")
+		return nil, err
+	}
+	defer rows.Close()
+
+	if err != nil {
+		log.WithError(err).Error("SELECT user failed")
+		return nil, err
+	}
+
+	for rows.Next() {
+		var userID int64
+		var username string
+		if err := rows.Scan(&userID, &username); err != nil {
+			log.WithError(err).Error("Users row iteration failed")
+			break
+		}
+		return &User{ID: userID, Username: username}, nil
+	}
+
+	return nil, fmt.Errorf("No user found")
+}
+
 // FetchSites fetches sites from the database and returns them
 func (auth *Context) FetchSites() ([]*Site, error) {
 	rows, err := auth.db.Query("SELECT id, url from sites")
@@ -137,18 +189,18 @@ func (auth *Context) FetchClaims() ([]*Claim, error) {
 }
 
 // AuthenticateUser authenticates a user against its credentials in the database
-func (auth *Context) AuthenticateUser(username, password string) bool {
+func (auth *Context) AuthenticateUser(username, password string) (bool, *User) {
 	rows, err := auth.db.Query("select salt, password from users where username = $1", username)
 	defer rows.Close()
 
 	if err != nil {
 		log.WithError(err).Error("Failed to execute auth query")
-		return false
+		return false, nil
 	}
 
 	if ok := rows.Next(); !ok {
 		log.WithError(rows.Err()).Error("Failed to retrieve user record from row")
-		return false
+		return false, nil
 	}
 
 	var (
@@ -158,10 +210,17 @@ func (auth *Context) AuthenticateUser(username, password string) bool {
 
 	if err := rows.Scan(&salt, &hash); err != nil {
 		log.WithError(err).Error("Failed to unmarshal row to variables")
-		return false
+		return false, nil
 	}
-
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s%s", salt, password)))) == hash
+	if fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s%s", salt, password)))) != hash {
+		return false, nil
+	}
+	user, err := auth.FetchUserByUsername(username)
+	if err != nil {
+		log.WithError(err).Error("Failed to find user")
+		return true, nil
+	}
+	return true, user
 }
 
 // AuthenticateAdmin authenticates a user against its credentials in the database and verifies that is's an administrator
