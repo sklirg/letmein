@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var db *sql.DB
+
 // Context contains the database connection for the auth package
 type Context struct {
 	db *sql.DB
@@ -47,7 +49,8 @@ func CreateContext() (*Context, error) {
 	// connStr := "user=lmi dbname=lmi sslmode=disable"
 	// connStr := "user=lmi dbname=lmi sslmode=verify-full"
 	// connStr := "postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full"
-	db, err := sql.Open("postgres", connStr)
+	var err error
+	db, err = sql.Open("postgres", connStr)
 
 	if err != nil {
 		log.WithError(err).Fatal("Failed to connect to database")
@@ -59,6 +62,7 @@ func CreateContext() (*Context, error) {
 		return nil, err
 	}
 
+	// @ToDo: refactor away this
 	return &Context{
 		db: db,
 	}, err
