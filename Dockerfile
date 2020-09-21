@@ -2,6 +2,9 @@ FROM golang:latest as build
 
 RUN mkdir /app
 WORKDIR /app
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
 COPY . .
 RUN go build -o letmein cmd/letmein/main.go
 RUN go build -o migrate cmd/migrate/main.go
@@ -15,5 +18,5 @@ RUN mkdir -p server/static/css
 RUN mkdir -p db/migrations
 COPY server/templates ./server/templates
 COPY server/static/css ./server/static/css
-COPY db .
+COPY db/migrations ./db/migrations
 CMD ["./letmein"]
