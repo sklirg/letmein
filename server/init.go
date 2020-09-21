@@ -37,10 +37,11 @@ func (context *HTTP) Init() {
 	// Get URL to login view
 	loginURL := os.Getenv("LMI_LOGIN_URL")
 	if loginURL == "" {
-		loginURL = "http://localhost:8001"
+		loginURL = "http://localhost:8001/login"
 		log.WithField("URL", context.LoginURL).Warn("Missing LMI_LOGIN_URL, setting it to default")
 	}
 	context.LoginURL = loginURL
+	log.WithField("login_url", context.LoginURL).Debug("Login URL configured")
 
 	templateDir := os.Getenv("LMI_TEMPLATE_DIR")
 	if templateDir == "" {
@@ -73,7 +74,7 @@ func (context *HTTP) Init() {
 		log.WithError(err).Fatal("Failed to read template file")
 	}
 
-	profileHTMLTemplate := template.New("admin")
+	profileHTMLTemplate := template.New("profile")
 	profileHTMLTemplate.Parse(string(profileContents))
 
 	// CreateAuthDB()
