@@ -16,11 +16,11 @@ import (
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
-	pgStore "github.com/vgarvardt/go-oauth2-pg/v4"
-	"github.com/jackc/pgx/v4"
-	"github.com/vgarvardt/go-pg-adapter/pgx4adapter"
 	"github.com/gorilla/sessions"
+	"github.com/jackc/pgx/v4"
 	log "github.com/sirupsen/logrus"
+	pgStore "github.com/vgarvardt/go-oauth2-pg/v4"
+	"github.com/vgarvardt/go-pg-adapter/pgx4adapter"
 
 	"github.com/sklirg/letmein/auth"
 )
@@ -50,7 +50,7 @@ func (oauth2 *OAuth2) Init(httpContext *HTTP) error {
 	manager := manage.NewDefaultManager()
 	manager.SetAuthorizeCodeTokenCfg(manage.DefaultAuthorizeCodeTokenCfg)
 
-	tokenStore, err := pgStore.NewTokenStore(adapter, pgStore.WithTokenStoreGCInterval(time.Minute * 15))
+	tokenStore, err := pgStore.NewTokenStore(adapter, pgStore.WithTokenStoreGCInterval(time.Minute*15))
 	if err != nil {
 		log.WithError(err).Error("Failed to initialise token store")
 		return err
