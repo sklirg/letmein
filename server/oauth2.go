@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/manage"
@@ -147,13 +148,25 @@ func (oauth2 *OAuth2) HandleAuthorize(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(500)
 			return
 		}
-		grants := make([]Grant, len(client.Grants))
-		for i, grant := range client.Grants {
+		scopes := make([]string, 0)
+		for k, v := range r.URL.Query() {
+			if k == "scope" {
+				for _, scopeVar := range v {
+					for _, scope := range strings.Split(scopeVar, ",") {
+						if len(scope) > 0 {
+							scopes = append(scopes, scope)
+						}
+					}
+				}
+			}
+		}
+		grants := make([]Grant, len(scopes))
+		for i, scope := range scopes {
+			// @ToDo: fetch well-known scopes for a client
 			grants[i] = Grant{
-				Name:        grant.Name,
-				Description: grant.Description,
-				Optional:    grant.Optional,
-				Authorize:   !grant.Optional, // Auto-authorize all non-optional grants
+				Name:      scope,
+				Optional:  false,
+				Authorize: true, // Default value
 			}
 		}
 
