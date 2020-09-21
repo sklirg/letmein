@@ -15,15 +15,16 @@ import (
 // HTTP contains the internal variables for the server
 // E.g. the database connection, session cookie name.
 type HTTP struct {
-	store               *sessions.CookieStore
-	CookieName          string
-	CookieDomain        string
-	LoginURL            string
-	loginHTMLTemplate   *template.Template
-	adminHTMLTemplate   *template.Template
-	profileHTMLTemplate *template.Template
-	authDB              *auth.Context
-	grants              map[string][]*auth.Claim
+	store                 *sessions.CookieStore
+	CookieName            string
+	CookieDomain          string
+	LoginURL              string
+	loginHTMLTemplate     *template.Template
+	adminHTMLTemplate     *template.Template
+	profileHTMLTemplate   *template.Template
+	authorizeHTMLTemplate *template.Template
+	authDB                *auth.Context
+	grants                map[string][]*auth.Claim
 }
 
 // HandleAuth handles the incoming proxy auth request
@@ -145,6 +146,7 @@ func (context *HTTP) HandleProfile(w http.ResponseWriter, r *http.Request) {
 			CSRFToken string
 			Username  string
 			URLs      []string
+			Clients   []*auth.OAuthClient
 		}
 
 		grantedURLs := make([]string, 0)
@@ -156,10 +158,35 @@ func (context *HTTP) HandleProfile(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		userID, ok := session.Values["user_id"].(int64)
+		if !ok {
+			log.Error("Failed to cast user_id to int64")
+			w.WriteHeader(500)
+			return
+		}
+
+		var authorizedClients []*auth.OAuthClient
+		authorizations, err := auth.OAuth2Authorization{UserID: userID}.All()
+		if err != nil {
+			log.WithError(err).Error("Failed to fetch user authorizations")
+		} else {
+
+			authorizedClients = make([]*auth.OAuthClient, len(authorizations))
+			for i, authorization := range authorizations {
+				client, err := auth.OAuthClient{}.Get(authorization.ClientID)
+				if err != nil {
+					log.WithError(err).WithField("client_id", authorization.ClientID).Error("Failed to fetch client")
+					continue
+				}
+				authorizedClients[i] = client
+			}
+		}
+
 		profileContext := ProfileContext{
 			CSRFToken: auth.CreateCSRFToken(),
 			Username:  session.Values["username"].(string),
 			URLs:      grantedURLs,
+			Clients:   authorizedClients,
 		}
 
 		session.Values["csrf-token"] = profileContext.CSRFToken
@@ -170,6 +197,32 @@ func (context *HTTP) HandleProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(401)
+}
+func (context *HTTP) HandleProfileClient(w http.ResponseWriter, r *http.Request) {
+	session, _ := context.store.Get(r, "letmein-session")
+
+	if authenticated, ok := session.Values["authenticated"].(bool); !authenticated || !ok {
+		w.WriteHeader(401)
+		return
+	}
+	if r.Method != "POST" {
+		w.WriteHeader(405)
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		log.WithError(err).Error("Failed to parse form during client unauthorize")
+		w.WriteHeader(500)
+		return
+	}
+	clientID := r.Form["client_id"][0]
+	userID := session.Values["user_id"].(int64)
+	deleted, err := auth.OAuth2Authorization{}.Delete(clientID, userID)
+	if !deleted || err != nil {
+		log.WithError(err).Error("Failed to delete user authorization")
+	}
+
+	w.Header().Set("location", "/profile")
+	w.WriteHeader(302)
 }
 
 func (context *HTTP) authenticate(username, password string) (bool, *auth.User) {

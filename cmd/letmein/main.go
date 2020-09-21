@@ -59,16 +59,37 @@ func main() {
 		w.Write(cssBytes)
 	})
 
+	// Init OAuth2
+	oauth2 := server.OAuth2{}
+	oauth2.Init(&h)
+
+	// Init OpenID
+	oid := server.OpenID{}
+	oid.Init(&oauth2)
+
 	http.HandleFunc("/auth", h.HandleAuth)
 	http.HandleFunc("/login", h.HandleLogin)
 	http.HandleFunc("/logout", h.HandleLogout)
 	http.HandleFunc("/profile", h.HandleProfile)
+	http.HandleFunc("/profile/client", h.HandleProfileClient)
 
 	// Admin sites
 	http.HandleFunc("/admin", h.HandleAdmin)
 	http.HandleFunc("/admin/user", h.HandleNewUser)
 	http.HandleFunc("/admin/site", h.HandleNewSite)
 	http.HandleFunc("/admin/claim", h.HandleNewClaim)
+	http.HandleFunc("/admin/client", h.HandleNewClient)
+
+	// OAuth2 routes
+	http.HandleFunc("/authorize", oauth2.HandleAuthorize)
+	http.HandleFunc("/token", oauth2.HandleToken)
+
+	// OpenID routes
+	http.HandleFunc("/.well-known/openid-configuration", oid.HandleOpenIDDiscovery)
+	http.HandleFunc("/openid/token", oid.HandleOpenIDToken)
+	http.HandleFunc("/openid/keys", oid.HandleOpenIDKeys)
+	http.HandleFunc("/userinfo", oid.HandleUserInfo)
+	http.HandleFunc("/userinfo/emails", oid.HandleUserInfoEmails)
 
 	log.Infof("Listening on %s", router.Addr)
 

@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -32,17 +33,25 @@ func (context *HTTP) HandleAdmin(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(500)
 			return
 		}
+		clients, err := auth.OAuthClient{}.All()
+		if err != nil {
+			log.WithError(err).Error("Failed to fetch clients")
+			w.WriteHeader(500)
+			return
+		}
 
 		type adminTemplateContext struct {
-			Users  []*auth.User
-			Sites  []*auth.Site
-			Claims []*auth.Claim
+			Users   []*auth.User
+			Sites   []*auth.Site
+			Claims  []*auth.Claim
+			Clients []*auth.OAuthClient
 		}
 
 		ctx := adminTemplateContext{
-			Users:  users,
-			Sites:  sites,
-			Claims: claims,
+			Users:   users,
+			Sites:   sites,
+			Claims:  claims,
+			Clients: clients,
 		}
 
 		if err := context.adminHTMLTemplate.Execute(w, ctx); err != nil {
@@ -210,6 +219,82 @@ func (context *HTTP) HandleNewClaim(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.WithField("username", username).WithField("url", url).Debug("Successfully inserted a new claim")
+
+	w.Header().Add("Location", "/admin")
+	w.WriteHeader(302)
+	return
+}
+
+// HandleNewClient handles an incoming request for adding a new client
+func (context *HTTP) HandleNewClient(w http.ResponseWriter, r *http.Request) {
+	session, _ := context.store.Get(r, "letmein-session")
+
+	if admin, ok := session.Values["admin"].(bool); !ok || !admin {
+		status := 401
+		if ok {
+			status = 403
+		}
+		w.WriteHeader(status)
+		return
+	}
+
+	// Get authorizing user
+	userID, ok := session.Values["user_id"].(int64)
+	if !ok {
+		log.Error("Failed to cast user ID to int")
+		w.WriteHeader(500)
+		return
+	}
+
+	r.ParseForm()
+
+	if r.Method != "POST" {
+		w.WriteHeader(405)
+		return
+	}
+
+	// If client-id is present in the form, we delete
+	if len(r.Form["client-id"]) > 0 {
+		ok, err := auth.OAuthClient{}.Delete(r.Form["client-id"][0])
+		if err != nil || !ok {
+			// Failed to delete
+			w.WriteHeader(500)
+		} else {
+			// Deleted
+			//w.WriteHeader(204)
+			w.Header().Set("location", "/admin")
+			w.WriteHeader(302)
+		}
+		return
+	}
+
+	grants := make([]auth.OAuthGrant, 0)
+	for _, grant := range strings.Split(r.PostFormValue("grants"), ",") {
+		grants = append(grants, auth.OAuthGrant{
+			Name: strings.TrimSpace(grant),
+		})
+	}
+
+	log.Debug("Creating client")
+
+	client := auth.OAuthClient{
+		Name:         r.PostFormValue("name"),
+		UserID:       userID,
+		RedirectURIs: strings.Split(strings.Replace(r.PostFormValue("redirect-uris"), "\r", "", -1), "\n"),
+		Grants:       grants,
+	}
+
+	newClient, err := client.Save()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+			"name":  client.Name,
+		}).Error("Failed to insert client")
+		w.WriteHeader(400)
+		return
+	}
+
+	log.WithField("name", newClient.Name).Debug("Successfully inserted a new client")
 
 	w.Header().Add("Location", "/admin")
 	w.WriteHeader(302)

@@ -77,6 +77,17 @@ func (context *HTTP) Init() {
 	profileHTMLTemplate := template.New("profile")
 	profileHTMLTemplate.Parse(string(profileContents))
 
+	// authorize template
+	authorizeFilePath := fmt.Sprintf("%s/authorize.html", templateDir)
+	authorizeContents, err := ioutil.ReadFile(authorizeFilePath)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to read template file")
+	}
+
+	authorizeHTMLTemplate := template.New("authorize")
+	authorizeHTMLTemplate.Parse(string(authorizeContents))
+	context.authorizeHTMLTemplate = authorizeHTMLTemplate
+
 	// CreateAuthDB()
 	adb, err := auth.CreateContext()
 	if err != nil {

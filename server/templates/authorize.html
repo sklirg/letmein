@@ -3,7 +3,6 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>let me in</title>
-        <link rel="stylesheet" href="/static/css/styles.css" />
         <style>
             @import url('https://fonts.googleapis.com/css?family=Noto+Serif:300,400|Open+Sans&display=swap');
 
@@ -17,12 +16,12 @@
                 background-color: #000000e0;
                 color: #ffffff;
                 display: grid;
-                grid-template-columns: 1fr minmax(20rem, 50rem) 1fr;
+                grid-template-columns: 1fr minmax(20rem, 30rem) 1fr;
                 grid-template-rows: 1fr 0.5fr 0.5fr 1fr;
                 grid-template-areas:
                     " . . . "
                     ". header ."
-                    ". profile ."
+                    ". loginForm ."
                     " . . . "
                     ;
             }
@@ -82,74 +81,85 @@
                 margin-right: auto;
             }
 
-            .profile {
-                grid-area: profile;
+            .login--form {
+                grid-area: loginForm;
                 border: 2px rgba(0, 0, 0, 0.2) solid;
                 border-radius: 3px;
                 padding: 1rem;
                 background: rgba(0, 0, 0, 0.2);
                 display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                /* grid-template-rows: repeat(3, 1fr); */
+                /* @ToDo: repeat for len of grants list */
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(3, 1fr);
             }
 
-            .profile--grants {
-                grid-column-start: span 2;
+            .login--form > form {
+                display: contents;
             }
 
-            .profile--authorizations {
-                grid-column-start: span 2;
-            }
-            
-            .profile--authorizations > ul > li {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
+            .login--form > form > * {
+                grid-column: 1 / span 3;
             }
 
-            #logout-form {
-                grid-column: 2;
-                justify-self: end;
+            .login--form button#authorize {
+                grid-row: 3;
+                grid-column: 3;
             }
 
-            button#logout {
+            .login--form button#cancel {
+                grid-row: 3;
+                grid-column: 1;
                 background-color: rgba(235, 0, 0, 0.3);
                 border: 1px rgba(235, 0, 0, 0.3) solid;
+            }
+
+            .login--form button#cancel:hover {
+                border: 1px rgba(255, 0, 0, 0.8) solid;
+            }
+
+            .grant {
+                display: flex;
+                align-items: center;
+            }
+
+            .grant > input {
+                margin-right: 4px;
+            }
+
+            .grant-required {
+                /* Sneaky hack to disable changing the value */
+                pointer-events: none;
+            }
+
+            .grant-description {
+                font-style: italic;
             }
         </style>
     </head>
     <body>
         <header class="header">
             <h1>Let me in</h1>
-            <h2>Profile for {{ .Username }}</h2>
+            <h2>Authorization of {{ .Client.Name }}</h2>
         </header>
-        <div class="profile">
-            <div class="profile--grants">
-                <h3>Grants</h3>
-                <ul>
-                    {{ range $i, $url := .URLs }}
-                    <li><a href="{{ $url }}">{{ $url }}</a></li>
-                    {{ end }}
-                </ul>
-            </div>
-            <div class="profile--authorizations">
-                <h3>Authorized applications</h3>
-                <ul>
-                {{ range $i, $client := .Clients }}
-                    <li>{{ $client.Name }} 
-                        <form action="/profile/client" method="POST">
-                            <!-- csrf -->
-                            <input type="text" name="client_id" value="{{ $client.ClientID }}" hidden />
-                            <button type="submit"><span title="Log out">❌<span></button>
-                        </form>
-                    </li>
+        <div class="login--form">
+            <!--<h3>Authorize the checked claims<h3>
+            <p>Unchecking a claim might make the requested application misbehave.</p>-->
+            <form action="" method="POST">
+                {{ range $i, $grant := .Grants }}
+                <div class="grant">
+                    <input id="grant-{{ $i }}" type="checkbox" name="grant-{{ $i }}" checked="{{ $grant.Authorize }}" class="{{ if not $grant.Optional }}grant-required{{ end }}" />
+                    <label for="grant-{{ $i }}">{{ $grant.Name }} <span class="grant-description">{{ $grant.Description }}</span></label>
+                </div>
                 {{ else }}
-                <p>No authorized applications.</p>
+                <div>This client requires no special grants.</div>
                 {{ end }}
-            </div>
-            <form id="logout-form" action="/logout" method="POST">
                 <input id="csrf-token" type="text" name="csrftoken" value="{{ .CSRFToken }}" hidden />
-                <button id="logout">Let me out</button>
+                <button type="submit" id="authorize">Authorize</button>
+            </form>
+            <form action="" method="POST">
+                <input id="csrf-token" type="text" name="csrftoken" value="{{ .CSRFToken }}" hidden />
+                <input id="cancel-request" type="text" name="cancel-request" value="cancel" hidden />
+                <button id="cancel">Cancel</button>
             </form>
         </div>
     </body>

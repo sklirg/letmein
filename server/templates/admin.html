@@ -23,7 +23,7 @@
                 ;
             }
 
-            input {
+            input, textarea {
                 height: 2rem;
                 border: 1px #acacac solid;
                 border-radius: 2px;
@@ -86,6 +86,16 @@
                 display: flex;
                 justify-content: space-between;
             }
+
+            .client-detail > header {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .client-detail-item {
+                display: flex;
+                justify-content: space-evenly;
+            }
         </style>
     </head>
     <body>
@@ -109,6 +119,43 @@
                 <h2>Claims</h2>
                 {{ range $i, $claim := .Claims }}
                 <div>{{ $claim.Username }} @ {{ $claim.URL }} ✅</div>
+                {{ end }}
+            </div>
+            <hr />
+            <div class="clients">
+                <h2>Clients</h2>
+                {{ range $i, $client := .Clients }}
+                <div class="client-detail">
+                    <header>
+                        <h3>{{ $client.Name }}</h3>
+	                    <form action="/admin/client" method="POST">
+	                        <!-- csrf -->
+	                        <!-- REST like instead /clients/<id> ? -->
+	                        <input type="text" name="client-id" value="{{ $client.ClientID }}" hidden />
+	                        <button type="submit">❌</button>
+	                    </form>
+                    </header>
+                    <div>Client ID: <span>{{ $client.ClientID }}</span></div>
+                    <div>Client Secret: <span>{{ $client.ClientSecret }}</span></div>
+                    <div class="client-detail-item">
+                        <div>
+	                        Redirect URIs
+	                        <ul>
+	                        {{ range $j, $uri := $client.RedirectURIs }}
+	                            <li>{{ $uri }}</li>
+	                        {{ end }}
+	                        </ul>
+                        </div>
+                        <div>
+                            Grants
+                            <ul>
+	                        {{ range $j, $grant := $client.Grants }}
+	                            <li>{{ $grant.Name }}{{ if not $grant.Optional }} <span title="required">🔒</span>{{ end }} <span>{{ $grant.Description }}</span></li>
+	                        {{ end }}
+	                        </ul>
+                        </div>
+                    </div>
+                </div>
                 {{ end }}
             </div>
             <hr />
@@ -149,6 +196,24 @@
                                 <option value="{{ $site.ID }}">{{ $site.URL }}</option>
                             {{ end }}
                         </select>
+                    </div>
+                    <button type="submit">Add</button>
+                </form>
+            </div>
+            <div>
+                <h2>Add new client</h2>
+                <form action="/admin/client" method="POST">
+                    <div>
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" />
+                    </div>
+                    <div>
+                        <label for="grants">Grants (separate by comma)</label>
+                        <input type="text" id="grants" name="grants" />
+                    </div>
+                    <div>
+                        <label for="redirect-uris">Redirect URIs (separate by newline)</label>
+                        <textarea id="redirect-uris" name="redirect-uris"></textarea>
                     </div>
                     <button type="submit">Add</button>
                 </form>
