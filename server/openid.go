@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	oidc "github.com/coreos/go-oidc"
@@ -36,8 +37,12 @@ func (oid *OpenID) Init(oauth2 *OAuth2) error {
 	if err != nil {
 		log.WithError(err).Error("Failed to create db context in oauth2")
 	}
-
-	oid.host = "http://localhost:8003"
+	host := os.Getenv("LMI_ROOT_URL")
+	if host == "" {
+		log.Warn("Missing LMI_ROOT_URL, using localhost")
+		host = "http://localhost:8003"
+	}
+	oid.host = host
 	oid.authDB = db
 	oid.oauth2srv = oauth2.srv
 
