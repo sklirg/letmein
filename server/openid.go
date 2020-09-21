@@ -3,13 +3,12 @@ package server
 import (
 	"crypto"
 	"crypto/rand"
-	//"crypto/ecdsa"
-	//"crypto/elliptic"
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	oidc "github.com/coreos/go-oidc"
@@ -225,6 +224,7 @@ type UserInfo struct {
 	Name              string `json:"name,omitempty"`
 	PreferredUsername string `json:"preferred_username,omitempty"`
 	Email             string `json:"email,omitempty"`
+	EmailVerified     bool   `json:"email_verified,omitempty"`
 	Picture           string `json:"picture,omitempty"`
 }
 
@@ -285,11 +285,11 @@ func (oid *OpenID) HandleUserInfo(w http.ResponseWriter, r *http.Request) {
 
 	log.WithField("dbUser", dbUser).Trace("We have a valid token, either oauth2 or id")
 
-	// fetch user info
 	userinfo := UserInfo{
-		Subject: fmt.Sprintf("%d", dbUser.ID),
-		Name:    dbUser.Username,
-		Email:   "hello@example.org",
+		Subject:       strconv.Itoa(int(dbUser.ID)),
+		Name:          dbUser.Username,
+		Email:         dbUser.Email,
+		EmailVerified: dbUser.EmailVerified,
 	}
 
 	payload, err := json.Marshal(userinfo)
