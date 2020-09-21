@@ -76,9 +76,11 @@ func (oauth2 *OAuth2) HandleAuthorize(w http.ResponseWriter, r *http.Request) {
 
 	var userID int64
 
-	userID, ok := session.Values["user_id"].(int64)
-	if !ok {
-		logger.Error("Failed to cast user_id to int64")
+	if authenticated, ok := session.Values["authenticated"].(bool); ok && authenticated {
+		userID, ok = session.Values["user_id"].(int64)
+		if !ok {
+			logger.Error("Failed to cast user_id to int64")
+		}
 	}
 
 	var clientID string
