@@ -125,8 +125,35 @@ func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		CSRFToken   string
 	}
 
+	authorizeName := r.FormValue("redirect_url")
+	if r.FormValue("redirect_url")[:10] == "/authorize" {
+		var clientID string
+		for k, v := range r.URL.Query() {
+			if k == "redirect_url" {
+				// Parse the urlescaped string back to an URL query
+				// so we can extract query variables from it
+				if u, err := url.Parse(v[0]); err == nil {
+					for k, v := range u.Query() {
+						if k == "client_id" {
+							clientID = v[0]
+							break
+						}
+					}
+				}
+			}
+		}
+		if clientID != "" {
+			client, err := auth.OAuthClient{}.Get(clientID)
+			if err != nil {
+				log.Warning("Failed to fetch client during login")
+			} else {
+				authorizeName = client.Name
+			}
+		}
+	}
+
 	loginContext := LoginContext{
-		RedirectURL: r.FormValue("redirect_url"),
+		RedirectURL: authorizeName,
 		CSRFToken:   auth.CreateCSRFToken(),
 	}
 
