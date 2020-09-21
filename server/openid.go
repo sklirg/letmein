@@ -39,8 +39,8 @@ func (oid *OpenID) Init(oauth2 *OAuth2) error {
 	}
 	host := os.Getenv("LMI_ROOT_URL")
 	if host == "" {
-		log.Warn("Missing LMI_ROOT_URL, using localhost")
 		host = "http://localhost:8003"
+		log.WithField("url", host).Warnf("Missing LMI_ROOT_URL, using '%s'", host)
 	}
 	oid.host = host
 	oid.authDB = db
