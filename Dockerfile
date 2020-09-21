@@ -19,4 +19,5 @@ RUN mkdir -p db/migrations
 COPY server/templates ./server/templates
 COPY server/static/css ./server/static/css
 COPY db/migrations ./db/migrations
+RUN apt install -y ca-certificates
 CMD ["./letmein"]
