@@ -19,7 +19,7 @@ jobs:
           push: true
           registry: ghcr.io
           repository: sklirg/letmein
-          tags: sklirg/letmein:latest
+          tags: latest
           tag_with_sha: true
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_ACCESS_TOKEN }}
