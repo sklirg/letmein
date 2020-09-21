@@ -21,8 +21,10 @@ type Context struct {
 
 // User contains the fields of the User type
 type User struct {
-	ID       int64
-	Username string
+	ID            int64
+	Username      string
+	Email         string
+	EmailVerified bool
 }
 
 // Site contains the fields of the Site type
@@ -70,7 +72,7 @@ func CreateContext() (*Context, error) {
 
 // FetchUsers fetches users from the database and returns them
 func (auth *Context) FetchUsers() ([]*User, error) {
-	rows, err := auth.db.Query("SELECT id, username from users")
+	rows, err := auth.db.Query("SELECT id, username, email, email_verified from users")
 	defer rows.Close()
 
 	if err != nil {
@@ -80,20 +82,19 @@ func (auth *Context) FetchUsers() ([]*User, error) {
 
 	users := make([]*User, 0)
 	for rows.Next() {
-		var userID int64
-		var username string
-		if err := rows.Scan(&userID, &username); err != nil {
+		user := User{}
+		if err := rows.Scan(&user.ID, &user.Username, &user.Email, &user.EmailVerified); err != nil {
 			log.WithError(err).Error("Users row iteration failed")
 			break
 		}
-		users = append(users, &User{ID: userID, Username: username})
+		users = append(users, &user)
 	}
 
 	return users, nil
 }
 
 func (auth *Context) FetchUser(id string) (*User, error) {
-	rows, err := auth.db.Query("SELECT id, username from users WHERE id = $1", id)
+	rows, err := auth.db.Query("SELECT id, username, email, email_verified from users WHERE id = $1", id)
 	if err != nil {
 		log.WithError(err).Error("Failed to prepare sql query for user")
 		return nil, err
@@ -106,20 +107,19 @@ func (auth *Context) FetchUser(id string) (*User, error) {
 	}
 
 	for rows.Next() {
-		var userID int64
-		var username string
-		if err := rows.Scan(&userID, &username); err != nil {
+		user := User{}
+		if err := rows.Scan(&user.ID, &user.Username, &user.Email, &user.EmailVerified); err != nil {
 			log.WithError(err).Error("Users row iteration failed")
 			break
 		}
-		return &User{ID: userID, Username: username}, nil
+		return &user, nil
 	}
 
 	return nil, fmt.Errorf("No user found")
 }
 
 func (auth *Context) FetchUserByUsername(username string) (*User, error) {
-	rows, err := auth.db.Query("SELECT id, username from users WHERE username = $1", username)
+	rows, err := auth.db.Query("SELECT id, username, email, email_verified from users WHERE username = $1", username)
 	if err != nil {
 		log.WithError(err).Error("Failed to prepare sql query for user")
 		return nil, err
@@ -132,13 +132,12 @@ func (auth *Context) FetchUserByUsername(username string) (*User, error) {
 	}
 
 	for rows.Next() {
-		var userID int64
-		var username string
-		if err := rows.Scan(&userID, &username); err != nil {
+		user := User{}
+		if err := rows.Scan(&user.ID, &user.Username, &user.Email, &user.EmailVerified); err != nil {
 			log.WithError(err).Error("Users row iteration failed")
 			break
 		}
-		return &User{ID: userID, Username: username}, nil
+		return &user, nil
 	}
 
 	return nil, fmt.Errorf("No user found")
@@ -257,7 +256,7 @@ func (auth *Context) AuthenticateAdmin(username, password string) bool {
 }
 
 // AddUser adds a new user to the database
-func (auth *Context) AddUser(username, password string) error {
+func (auth *Context) AddUser(username, password, email string) error {
 	saltSrc, err := uuid.NewRandom()
 
 	if err != nil {
@@ -268,14 +267,14 @@ func (auth *Context) AddUser(username, password string) error {
 	salt := fmt.Sprintf("%x", sha256.Sum256([]byte(saltSrc.String())))
 	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf("%s%s", salt, password))))
 
-	stmt, err := auth.db.Prepare("INSERT INTO users (username, password, salt) VALUES ($1, $2, $3)")
+	stmt, err := auth.db.Prepare("INSERT INTO users (username, email, password, salt) VALUES ($1, $2, $3, $4)")
 
 	if err != nil {
 		log.WithError(err).Error("Failed to initialize prepared statement")
 		return err
 	}
 
-	_, err = stmt.Exec(username, hash, salt)
+	_, err = stmt.Exec(username, email, hash, salt)
 	if err != nil {
 		log.WithError(err).Error("Failed to execute instert user statement")
 		return err

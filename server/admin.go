@@ -128,13 +128,14 @@ func (context *HTTP) HandleNewUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	username := r.PostFormValue("username")
+	email := r.PostFormValue("email")
 
-	if username == "" || r.PostFormValue("password") == "" {
+	if username == "" || r.PostFormValue("password") == "" || email == "" {
 		w.WriteHeader(400)
 		return
 	}
 
-	err := context.authDB.AddUser(username, r.PostFormValue("password"))
+	err := context.authDB.AddUser(username, r.PostFormValue("password"), email)
 	if err != nil {
 		log.WithError(err).WithField("username", username).Error("Failed to insert user")
 		w.WriteHeader(400)

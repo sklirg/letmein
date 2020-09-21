@@ -104,7 +104,7 @@
             <div class="users">
                 <h2>Users</h2>
                 {{ range $i, $user := .Users }}
-                <div>{{ $user.Username }}</div>
+                <div>{{ $user.Username }} ({{ $user.Email }} {{ if $user.EmailVerified }}🔒{{ else }}⚠️{{ end }})</div>
                 {{ end }}
             </div>
             <hr />
@@ -163,6 +163,7 @@
                 <h2>Add new user</h2>
                 <form action="/admin/user" method="POST">
                     <input id="admin-username" placeholder="Username" name="username" />
+                    <input id="admin-email" type="email" placeholder="me@example.org" name="email" />
                     <input id="admin-password" type="password" placeholder="Password" name="password" />
                     <button type="submit">Add</button>
                 </form>
