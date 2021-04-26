@@ -126,7 +126,7 @@ func (context *HTTP) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	authorizeName := r.FormValue("redirect_url")
-	if r.FormValue("redirect_url")[:10] == "/authorize" {
+	if len(authorizeName) >= 10 && authorizeName[:10] == "/authorize" {
 		var clientID string
 		for k, v := range r.URL.Query() {
 			if k == "redirect_url" {
